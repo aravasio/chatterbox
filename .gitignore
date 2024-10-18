@@ -1,0 +1,45 @@
+.DS_Store
+/.build
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+
+# Ignore the .build directory inside /Sources
+/Sources/.build
+
+# Ignore build products
+.build/
+DerivedData/
+
+# Ignore Xcode project files
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+# Ignore Swift Package Manager related files
+.swiftpm/
+Package.resolved
+
+# Ignore logs and other temporary files
+*.log
+*.tmp
+*.lock
+
+# Ignore macOS specific files
+.DS_Store
+
+# Ignore compiled files and cache
+*.o
+*.a
+*.dSYM
+
+# Ignore any environment files
+.env
+
+# Ignore .vscode and other IDE configurations
+.vscode/
+.idea/
+
