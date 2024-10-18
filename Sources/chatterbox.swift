@@ -4,13 +4,13 @@ import ArgumentParser
 struct Chatterbox: AsyncParsableCommand {
 
     static func start() async {
-    do {
-        var box = try parse()
-        try await box.run()
-    } catch {
-        exit(withError: error)
+        do {
+            var box = try parse()
+            try await box.run()
+        } catch {
+            exit(withError: error)
+        }
     }
-}
 
     @Argument(help: "The message to send to the assistant.")
     var message: String?
@@ -31,6 +31,12 @@ struct Chatterbox: AsyncParsableCommand {
     var file: String?
 
     mutating func run() async throws {
+        if isPipedInput() {
+            print("Piped input received. Processing...")
+        } else {
+            print("Enter your message (end with EOF or Ctrl+D):")
+        }
+
         // Load configuration
         let config: Config = try Config.load()
         try ensureDirectoriesExist(config: config)
@@ -56,6 +62,7 @@ struct Chatterbox: AsyncParsableCommand {
         } else if let filePath: String = file {
             userInput = try String(contentsOfFile: filePath, encoding: .utf8)
         } else {
+            // Adjust based on whether input is from a pipe or interactive
             userInput = readFromStandardInput()
         }
 
@@ -101,10 +108,4 @@ struct Chatterbox: AsyncParsableCommand {
             handleOpenAIError(error)
         }
     }
-}
-
-fileprivate func handleParseError(_ error: Error) {
-    print("Error starting up")
-    print("Error details: \(error)")
-    exit(1)
 }

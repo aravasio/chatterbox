@@ -150,12 +150,8 @@ func sendOpenAIRequest(
 }
 
 func readFromStandardInput() -> String {
-    print("Enter your message (end with EOF or Ctrl+D):")
-    var inputLines: [String] = [String]()
-    while let line: String = readLine() {
-        inputLines.append(line)
-    }
-    return inputLines.joined(separator: "\n")
+    let data: Data = FileHandle.standardInput.availableData
+    return String(decoding: data, as: UTF8.self)
 }
 
 enum OpenAIError: Error {
@@ -189,4 +185,8 @@ private func expandTildeInPath(_ path: String) -> String {
     } else {
         return path
     }
+}
+
+func isPipedInput() -> Bool {
+    return isatty(fileno(stdin)) == 0
 }
