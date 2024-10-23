@@ -87,6 +87,11 @@ struct Chatterbox: AsyncParsableCommand {
         let temperatureToUse: Double = temperature ?? config.temperature
         let maxTokensToUse: Int = config.maxTokens
 
+        // Start the processing indicator
+        print() // Empty print to create a new-line for clearer spacing.
+        let indicator: ProcessingIndicator = ProcessingIndicator()
+        indicator.start()
+
         // Send request to OpenAI API
         do {
             let assistantResponse: String = try await sendMessage(
@@ -97,6 +102,11 @@ struct Chatterbox: AsyncParsableCommand {
                 maxTokens: maxTokensToUse
             )
 
+            // Stop the indicator once the response is received
+            indicator.stop()
+            print() // Empty print to create a new-line for clearer spacing.
+
+
             // Append assistant response
             let assistantMessage: ChatMessage = ChatMessage(role: .assistant, content: assistantResponse)
             messages.append(assistantMessage)
@@ -104,6 +114,8 @@ struct Chatterbox: AsyncParsableCommand {
             try saveChatLog(messages: messages, config: config)
             print(assistantResponse)
         } catch {
+            indicator.stop()
+            print() // Empty print to create a new-line for clearer spacing.
             handleOpenAIError(error)
         }
     }
