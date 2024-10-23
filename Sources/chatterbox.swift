@@ -5,7 +5,7 @@ struct Chatterbox: AsyncParsableCommand {
 
     static func start() async {
         do {
-            var box = try parse()
+            var box: Chatterbox = try parse()
             try await box.run()
         } catch {
             exit(withError: error)
@@ -31,12 +31,6 @@ struct Chatterbox: AsyncParsableCommand {
     var file: String?
 
     mutating func run() async throws {
-        if isPipedInput() {
-            print("Piped input received. Processing...")
-        } else {
-            print("Enter your message (end with EOF or Ctrl+D):")
-        }
-
         // Load configuration
         let config: Config = try Config.load()
         try ensureDirectoriesExist(config: config)
@@ -55,14 +49,19 @@ struct Chatterbox: AsyncParsableCommand {
             messages = [ChatMessage(role: .system, content: "You are a helpful assistant.")]
         }
 
-        // Read user input
+        // Read all input from stdin until EOF
         let userInput: String
-        if let message: String = message {
+        if isPipedInput() {
+            var inputData: String = ""
+            while let line: String = readLine() {
+                inputData += line + "\n" // Accumulate input until EOF
+            }
+            userInput = inputData.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if let message: String = message {
             userInput = message
         } else if let filePath: String = file {
             userInput = try String(contentsOfFile: filePath, encoding: .utf8)
         } else {
-            // Adjust based on whether input is from a pipe or interactive
             userInput = readFromStandardInput()
         }
 
