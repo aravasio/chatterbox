@@ -1,4 +1,3 @@
-
 # Chatterbox
 
 **Chatterbox** is a Swift-based command-line interface (CLI) tool that allows users to interact with OpenAI's GPT models from their terminal. This tool provides functionalities for sending messages, starting new chat sessions, specifying models, and configuring response settings. It also supports logging and archiving chat histories.
@@ -20,6 +19,7 @@
 - [Logging and Chat History](#logging-and-chat-history)
 - [Error Handling](#error-handling)
 - [Troubleshooting](#troubleshooting)
+- [Enhancing Chatterbox with .stitchrc](#enhancing-chatterbox-with-stitchrc)
 - [License](#license)
 
 ---
@@ -196,6 +196,60 @@ This ensures that you know where the issue lies and can fix it by setting up the
 - **Command Not Found**: Ensure you created the symlink to `/usr/local/bin/chatterbox` and that `/usr/local/bin` is in your system’s `PATH`.
 - **Invalid API Key**: Verify your API key is correct in the `config.json` file.
 - **Logging Issues**: Ensure the `logDirectory` specified in the configuration exists and that Chatterbox has permission to write to it.
+
+---
+
+## Enhancing Chatterbox with .stitchrc
+
+The `.stitchrc` file provides a Zsh function named `stitch` that can be used to combine multiple code files from a specified directory into a single, formatted output. This can be useful for preparing code snippets or documentation.
+
+### Setting Up `.stitchrc`
+
+1. **Add the `stitch` Function to Your `.zshrc`**:
+   Copy the content of `.stitchrc` into your `.zshrc` file to make the `stitch` function available in your terminal sessions.
+
+2. **Create a Soft Link to Home**:
+   If you have a separate `.stitchrc` file, you can create a symbolic link to it in your home directory:
+
+   ```bash
+   ln -s /path/to/.stitchrc ~/.stitchrc
+   ```
+
+3. **Source the `.stitchrc` in Your `.zshrc`**:
+   Add the following line to your `.zshrc` to source the `.stitchrc` file:
+
+   ```bash
+   source ~/.stitchrc
+   ```
+
+4. **Reload Your Zsh Configuration**:
+   After updating your `.zshrc`, reload it with:
+
+   ```bash
+   source ~/.zshrc
+   ```
+
+### Using the `stitch` Function
+
+- **Combine Files**: Use `stitch` to combine files in a directory:
+
+  ```bash
+  stitch src
+  ```
+
+- **Recursive Combination**: Combine files recursively:
+
+  ```bash
+  stitch -r src
+  ```
+
+- **Output to Clipboard**: Combine files and copy to clipboard:
+
+  ```bash
+  stitch -o clipboard src
+  ```
+
+This function respects `.gitignore` files and can skip binary files, making it a powerful tool for managing code snippets and documentation.
 
 ---
 
