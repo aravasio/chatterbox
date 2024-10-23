@@ -1,0 +1,180 @@
+function stitch() {
+    # Initialize variables
+    typeset directory=""
+    typeset pattern="*"
+    typeset output_option=""
+    typeset recursive=false
+
+    # Parse options using getopts
+    while getopts ":hro:" opt; do
+        case $opt in
+            h)
+                echo "Usage: stitch [options] <directory> [<file_pattern>]"
+                echo
+                echo "Combines multiple code files from a specified directory into a single, formatted output."
+                echo "By default, binary files are skipped, syntax highlighting is applied if possible,"
+                echo "files are processed sequentially, and a progress indicator is displayed."
+                echo
+                echo "Note: This function is designed for Zsh."
+                echo
+                echo "Options:"
+                echo "  -h              Display this help message and exit."
+                echo "  -r              Include files from subdirectories (recursive search)."
+                echo "  -o <output>     Specify output destination (filename or 'clipboard')."
+                echo
+                echo "Positional Arguments:"
+                echo "  <directory>     The directory to search in."
+                echo "  [file_pattern]  (Optional) File pattern to match (default is '*')."
+                echo
+                echo "Examples:"
+                echo "  stitch ."
+                echo "      Combine all files in the current directory and print to the terminal."
+                echo "  stitch src"
+                echo "      Combine all files in the 'src' directory and print to the terminal."
+                echo "  stitch -r src"
+                echo "      Recursively combine all files in 'src' and print to the terminal."
+                echo "  stitch -o output.txt src"
+                echo "      Combine all files in 'src' and write the output to 'output.txt'."
+                echo "  stitch -o clipboard src"
+                echo "      Combine all files in 'src' and copy the output to the clipboard."
+                echo
+                return 0
+                ;;
+            r)
+                recursive=true
+                ;;
+            o)
+                output_option="$OPTARG"
+                ;;
+            \?)
+                echo "Unknown option: -$OPTARG"
+                return 1
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument."
+                return 1
+                ;;
+        esac
+    done
+
+    # Adjust positional arguments after options
+    shift $((OPTIND - 1))
+
+    # Check for the required directory argument
+    if [[ -z "$1" ]]; then
+        echo "Error: Missing directory argument."
+        echo "Usage: stitch [options] <directory> [<file_pattern>]"
+        return 1
+    fi
+
+    directory="$1"
+    if [[ -n "$2" ]]; then
+        pattern="$2"
+    fi
+
+    # Function to check if a file should be ignored (based on .gitignore)
+    should_ignore() {
+        if git check-ignore "$1" > /dev/null 2>&1; then
+            return 0  # Yes, file should be ignored
+        else
+            return 1  # No, file should not be ignored
+        fi
+    }
+
+    # Read files into array
+    files=()
+    if [[ "$recursive" == true ]]; then
+        # Prune unwanted directories, respect .gitignore
+        while IFS= read -r -d $'\0' file; do
+            if ! should_ignore "$file"; then
+                files+=("$file")
+            fi
+        done < <(find "$directory" -type d \( -name ".git" -o -name ".build" -o -name "DerivedData" -o -name "*.swiftpm" -o -name "*.xcodeproj" -o -name "*.xcworkspace" -o -name ".vscode" -o -name ".idea" \) -prune -o -type f -name "$pattern" -print0)
+    else
+        while IFS= read -r -d $'\0' file; do
+            if ! should_ignore "$file"; then
+                files+=("$file")
+            fi
+        done < <(find "$directory" -maxdepth 1 -type f -name "$pattern" -print0)
+    fi
+
+    # Check if files were found
+    if [[ "${#files[@]}" -eq 0 ]]; then
+        echo "No files found matching the pattern '$pattern' in directory '$directory'."
+        return 1
+    fi
+
+    # Initialize progress variables
+    total_files=${#files[@]}
+    processed_files=0
+
+    # Determine if output is to terminal
+    # if [ -z "$output_option" ]; then
+    #     # Output is to terminal
+    #     if command -v bat > /dev/null; then
+    #         highlight_cmd=(bat --plain --paging=never --color=always)
+    #     elif command -v highlight > /dev/null; then
+    #         highlight_cmd=(highlight --out-format=ansi)
+    #     elif command -v lolcat > /dev/null; then
+    #         highlight_cmd=(lolcat)
+    #     else
+    #         highlight_cmd=(cat)
+    #     fi
+    # else
+        # Output is to file or clipboard
+        highlight_cmd=(cat)
+    # fi
+
+    # Progress bar function
+    # show_progress() {
+        # local percent=$((processed_files * 100 / total_files))
+        # echo -ne "Processing files: $processed_files/$total_files ($percent%)\r"
+    # }
+
+    # Function to determine if a file is binary
+    is_binary() {
+        if grep -qIl . "$1"; then
+            return 1  # Not binary
+        else
+            return 0  # Binary
+        fi
+    }
+
+    # Process files sequentially
+    output=""
+    for FILE in "${files[@]}"; do
+        if [[ -f "$FILE" ]]; then
+            if is_binary "$FILE"; then
+                # Skip binary files
+                :
+            else
+                filename=$(basename "$FILE")
+                content="$filename\n\`\`\`\n$($highlight_cmd "$FILE")\n\`\`\`\n"
+                output+="$content\n"
+            fi
+        fi
+        ((processed_files++))
+        # show_progress
+    done
+
+    echo -ne "\n"  # Move to the next line after progress bar
+
+    # Handle output destination
+    if [[ "$output_option" == "clipboard" ]]; then
+        if command -v xclip > /dev/null; then
+            echo -e "$output" | xclip -selection clipboard
+            echo "Output copied to clipboard."
+        elif command -v pbcopy > /dev/null; then
+            echo -e "$output" | pbcopy
+            echo "Output copied to clipboard."
+        else
+            echo "Clipboard utility not found. Please install xclip or pbcopy."
+            return 1
+        fi
+    elif [[ -n "$output_option" ]]; then
+        echo -e "$output" > "$output_option"
+        echo "Output written to $output_option."
+    else
+        echo -e "$output"
+    fi
+}
