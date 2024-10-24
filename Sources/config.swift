@@ -4,6 +4,7 @@ struct Config: Codable {
     let apiKey: String
     let defaultModel: String
     let temperature: Double
+    let topP: Double
     let maxTokens: Int
     let logDirectory: String
 

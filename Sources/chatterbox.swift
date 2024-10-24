@@ -24,6 +24,12 @@ struct Chatterbox: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Set the temperature for response randomness.")
     var temperature: Double?
 
+    @Option(name: .shortAndLong, help: "Set the nucleus sampling probability for response diversity.")
+    var topP: Double?
+
+    @Option(name: .shortAndLong, help: "Set a custom system message for a new chat.")
+    var systemMessage: String?
+
     @Flag(name: .shortAndLong, help: "Enable verbose logging.")
     var verbose: Bool = false
 
@@ -36,17 +42,23 @@ struct Chatterbox: AsyncParsableCommand {
         try ensureDirectoriesExist(config: config)
         let apiKey: String = config.apiKey
 
-        // Handle starting a new chat
-        if new {
-            try await archiveChatLog(config: config, apiKey: apiKey)
+         // Check if a custom system message is provided without the -n flag
+        if systemMessage != nil && !new {
+            throw ValidationError("Error: Custom system message can only be set when starting a new chat with the -n flag.")
         }
 
-        // Load existing chat history or start a new one
+        // Handle starting a new chat
         var messages: [ChatMessage]
-        do {
-            messages = try loadChatLog(config: config)
-        } catch {
-            messages = [ChatMessage(role: .system, content: "You are a helpful assistant.")]
+        if new {
+            try await archiveChatLog(config: config, apiKey: apiKey)
+            messages = [ChatMessage(role: .system, content: systemMessage ?? "You are a helpful assistant.")]
+        } else {
+            // Load existing chat history or start a new one
+            do {
+                messages = try loadChatLog(config: config)
+            } catch {
+                messages = [ChatMessage(role: .system, content: "You are a helpful assistant.")]
+            }
         }
 
         // Read all input from stdin until EOF
@@ -85,6 +97,7 @@ struct Chatterbox: AsyncParsableCommand {
         }
 
         let temperatureToUse: Double = temperature ?? config.temperature
+        let topPToUse: Double = topP ?? config.topP
         let maxTokensToUse: Int = config.maxTokens
 
         // Start the processing indicator
@@ -99,6 +112,7 @@ struct Chatterbox: AsyncParsableCommand {
                 apiKey: apiKey,
                 model: modelToUse,
                 temperature: temperatureToUse,
+                topP: topPToUse,
                 maxTokens: maxTokensToUse
             )
 

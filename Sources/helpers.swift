@@ -35,7 +35,9 @@ func loadChatLog(config: Config) throws -> [ChatMessage] {
 func saveChatLog(messages: [ChatMessage], config: Config) throws {
     let expandedLogDirectory: String = expandTildeInPath(config.logDirectory)
     let logURL: URL = URL(fileURLWithPath: expandedLogDirectory).appendingPathComponent("chat.log")
-    let data: Data = try JSONEncoder().encode(messages)
+    let encoder: JSONEncoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    let data: Data = try encoder.encode(messages)
     try data.write(to: logURL)
 }
 
@@ -85,7 +87,8 @@ func generateSummary(messages: [ChatMessage], apiKey: String) async throws -> St
             ChatMessage(role: .user, content: summaryPrompt)
         ],
         max_tokens: 10,
-        temperature: 0.5
+        temperature: 0.5,
+        top_p: 0.5
     )
 
     // Send request and parse response
@@ -98,13 +101,15 @@ func sendMessage(
     apiKey: String,
     model: Model,
     temperature: Double,
+    topP: Double,
     maxTokens: Int?
 ) async throws -> String {
     let requestBody: OpenAIRequest = OpenAIRequest(
         model: model.rawValue,
         messages: messages,
         max_tokens: maxTokens,
-        temperature: temperature
+        temperature: temperature,
+        top_p: topP
     )
     return try await sendOpenAIRequest(requestBody: requestBody, apiKey: apiKey)
 }

@@ -22,6 +22,7 @@ struct OpenAIRequest: Codable {
     let messages: [ChatMessage]
     let max_tokens: Int?
     let temperature: Double?
+    let top_p: Double?
 }
 
 struct OpenAIResponse: Codable {
