@@ -15,6 +15,9 @@ struct Chatterbox: AsyncParsableCommand {
     @Argument(help: "The message to send to the assistant.")
     var message: String?
 
+    @Option(name: .shortAndLong, help: "Save the assistant's output to a file.")
+    var output: String?
+    
     @Flag(name: .shortAndLong, help: "Start a new chat.")
     var new: Bool = false
 
@@ -116,10 +119,8 @@ struct Chatterbox: AsyncParsableCommand {
                 maxTokens: maxTokensToUse
             )
 
-            // Stop the indicator once the response is received
             indicator.stop()
             print() // Empty print to create a new-line for clearer spacing.
-
 
             // Append assistant response
             let assistantMessage: ChatMessage = ChatMessage(role: .assistant, content: assistantResponse)
@@ -127,10 +128,16 @@ struct Chatterbox: AsyncParsableCommand {
 
             try saveChatLog(messages: messages, config: config)
             print(assistantResponse)
+
+            // Save response to the file if the output option is provided
+            if let filePath = output {
+                try assistantResponse.write(toFile: filePath, atomically: true, encoding: .utf8)
+            }
         } catch {
             indicator.stop()
             print() // Empty print to create a new-line for clearer spacing.
             handleOpenAIError(error)
         }
+
     }
 }

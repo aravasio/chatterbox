@@ -1,7 +1,16 @@
 import Foundation
 
 class ProcessingIndicator {
-    private let frames: [String] = ["[o     ]", "[ o    ]", "[  o   ]", "[   o  ]", "[    o ]", "[     o]", "[    o ]", "[   o  ]", "[  o   ]", "[ o    ]"]
+    private let frames: [String] = ["[o     ]",
+                                    "[ o    ]",
+                                    "[  o   ]",
+                                    "[   o  ]",
+                                    "[    o ]",
+                                    "[     o]",
+                                    "[    o ]",
+                                    "[   o  ]",
+                                    "[  o   ]",
+                                    "[ o    ]"]
     private var currentFrame: Int = 0
     private var isAnimating: Bool = false
     private var animationThread: Thread?
