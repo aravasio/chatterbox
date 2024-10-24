@@ -14,6 +14,7 @@
   - [Start a New Chat Session](#start-a-new-chat-session)
   - [Specify a Model](#specify-a-model)
   - [Set Response Temperature](#set-response-temperature)
+  - [Set Custom System Message](#set-custom-system-message)
   - [Verbose Mode](#verbose-mode)
   - [Read Input from a File](#read-input-from-a-file)
 - [Logging and Chat History](#logging-and-chat-history)
@@ -30,7 +31,8 @@
 - Send messages or start new chat sessions.
 - Use various OpenAI models (e.g., `gpt-3.5-turbo`, `gpt-4`).
 - Adjust response temperature to control randomness.
-- Archive and log chat histories.
+- Customize system role message when starting a new chat.
+- Archive and log chat histories with pretty-printed JSON.
 - Read user input from files or directly from terminal.
 
 ---
@@ -74,6 +76,7 @@ Before using Chatterbox, you need to set up a configuration file at:
   "apiKey": "your-openai-api-key",
   "defaultModel": "gpt-4",
   "temperature": 0.7,
+  "topP": 0.9,
   "maxTokens": 150,
   "logDirectory": "/home/username/.chatterbox/logs"
 }
@@ -84,6 +87,7 @@ Before using Chatterbox, you need to set up a configuration file at:
 - **`apiKey`**: Your OpenAI API key.
 - **`defaultModel`**: The default GPT model to use (e.g., `gpt-3.5-turbo`, `gpt-4`).
 - **`temperature`**: Controls response randomness. Values between 0.0 (deterministic) and 1.0 (creative).
+- **`topP`**: Controls the nucleus sampling parameter for response generation.
 - **`maxTokens`**: The maximum number of tokens in the response.
 - **`logDirectory`**: Path to store chat logs. Ensure this directory exists.
 
@@ -144,6 +148,14 @@ To control how random or creative the assistant's responses are, set the tempera
 chatterbox --temperature 0.5 "What is the capital of France?"
 ```
 
+### Set Custom System Message
+
+To set a custom system message when starting a new chat session:
+
+```bash
+chatterbox --new --system-message "You are a financial advisor." "What are the best investment strategies?"
+```
+
 ### Verbose Mode
 
 To enable verbose logging for detailed output:
@@ -174,7 +186,7 @@ By default, logs are stored in:
 ~/.chatterbox/logs/
 ```
 
-- Chat logs are saved as JSON files with timestamps.
+- Chat logs are saved as pretty-printed JSON files with timestamps.
 - When a new chat session is started, the old session is archived.
 
 ---
