@@ -14,9 +14,6 @@ struct Chatterbox: AsyncParsableCommand {
 
     @Argument(help: "The message to send to the assistant.")
     var message: String?
-
-    @Option(name: .shortAndLong, help: "Save the assistant's output to a file.")
-    var output: String?
     
     @Flag(name: .shortAndLong, help: "Start a new chat.")
     var new: Bool = false
@@ -27,7 +24,7 @@ struct Chatterbox: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Set the temperature for response randomness.")
     var temperature: Double?
 
-    @Option(name: .shortAndLong, help: "Set the nucleus sampling probability for response diversity.")
+    @Option(name: [.customShort("T"), .long], help: "Set the nucleus sampling probability for response diversity.")
     var topP: Double?
 
     @Option(name: .shortAndLong, help: "Set a custom system message for a new chat.")
@@ -38,6 +35,9 @@ struct Chatterbox: AsyncParsableCommand {
 
     @Option(name: .shortAndLong, help: "Read input from a file.")
     var file: String?
+    
+    @Option(name: [.customShort("o"), .long], help: "Save the assistant's output to a file.")
+    var output: String?
 
     mutating func run() async throws {
         // Load configuration
